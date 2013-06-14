@@ -1,0 +1,203 @@
+<html>
+
+<body oncontextmenu="return false">
+
+<canvas id='tela' width='1250' height='650'>
+blablabla
+</canvas>
+
+<script>
+tela = document.getElementById('tela');
+d = tela.getContext('2d');
+
+const c=9;// constante da diferença entre o começo da tela e o começo do jogo
+var score=0;
+var t=0;//variavel que conta o tempo
+var t2;
+var t3;
+
+
+d.fillRect(0,0,tela.width,tela.height);
+
+//função que retorna um numero aleatório
+function aleatorio(limite){
+	return(Math.floor(Math.random()*limite+1));
+}
+
+function tempo(){
+	t++;
+	return t;
+}
+
+window.setInterval("tempo()", 1000);
+
+//Classe alvo
+function Alvo(x,y,raio,cor1,cor2,cor3){
+	this.x=x;
+	this.y=y;
+	this.raio=raio;
+	this.cor1=cor1;
+	this.cor2=cor2;
+	this.cor3=cor3;
+}
+
+//recebe os parametro e chama as funções que ciram os alvos
+function desenhaAlvo(x,y,raio,cor1,cor2,cor3){
+	desenhaAlvoExterno(x,y,raio,cor1);//cria alvo externo
+	desenhaAlvoMedio(x,y,raio,cor2);//cria alvo do meio
+	desenhaAlvoInterno(x,y,raio,cor3);//cria alvo interno
+}
+
+function desenhaAlvoExterno(x,y,raio,cor){
+	d.beginPath();
+	d.fillStyle=cor; 
+	d.arc(x,y,raio,0,Math.PI*2,true);//desenha o circulo
+	d.fill();
+	d.closePath();
+}
+
+function desenhaAlvoMedio(x,y,raio,cor){
+	d.beginPath();
+	d.fillStyle=cor; 
+	d.arc(x,y,raio*2/3,0,Math.PI*2,true);//desenha o circulo
+	d.fill();
+	d.closePath();
+}
+
+function desenhaAlvoInterno(x,y,raio,cor){
+	d.beginPath();
+	d.fillStyle=cor; 
+	d.arc(x,y,raio/4,0,Math.PI*2,true);//desenha o circulo
+	d.fill();
+	d.closePath();
+}
+
+
+//verifica se os alvos nasceram no mesmo lugar ou muito próximos
+function verificaAlvos(x1,x2,y1,y2){
+	if(x1<x2+2 && x1>x2-2)
+	   if(y1<y2+2 && y1>y2-2)
+		return false;
+	else
+		return true;
+}
+
+//gera posições aleatórias para os alvos
+function geraAleatorios(){
+	pos=new Array();
+	do{
+	pos[0]=aleatorio(20);
+	pos[1]=aleatorio(20);
+	pos[2]=aleatorio(20);
+	pos[3]=aleatorio(20);
+	//alert("  "+al1x+"  "+al2x+"  "+al1y+"  "+al2y);
+	}while(verificaAlvos(pos[0],pos[1],pos[2],pos[3]));
+	return pos;
+}
+
+//Inicializa os alvos e o fundo
+function inicializaJogo(){
+	t2=tempo();
+	geraAleatorios();
+	d.clearRect(0,0,tela.width,tela.height);
+	d.fillStyle="black";
+	d.fillRect(0,0,tela.width,tela.height);
+	desenhaScore();
+	alvo1= new Alvo(60*pos[0],30*pos[2],50,"red","blue","green");//x,y,raio,cor externa, cor do meio, cor interna
+	alvo2= new Alvo(60*pos[1],30*pos[3],50,"yellow","pink","gray");
+	desenhaAlvo(alvo1.x,alvo1.y,alvo1.raio,alvo1.cor1,alvo1.cor2,alvo1.cor3);//x,y,raio,cor externa, cor do meio, cor interna
+	desenhaAlvo(alvo2.x,alvo2.y,alvo2.raio,alvo2.cor1,alvo2.cor2,alvo2.cor3);
+}
+
+inicializaJogo();
+
+//aumenta o score de acordo com o lugar clicado
+/*
+	alvo1 interno alvo2 interno 150 pontos
+	alvo1 interno alvo2 meio 100 pontos
+	alvo1 interno alvo2 externo 80 pontos
+	alvo1 meio alvo2 interno 80 pontos
+	alvo1 meio alvo2 meio 60 pontos
+	alvo1 meio alvo2 externo 40 pontos
+	alvo1 externo alvo2 interno 50 pontos
+	alvo1 externo alvo2 meio 30 pontos
+	alvo1 externo alvo2 externo 10 pontos
+*/
+function aumentaScore(alvo1,alvo2,x1,y1,x3,y3,tempo){
+	if(x3<(alvo2.x+(alvo2.raio/4)+c) && x3>(alvo2.x-(alvo2.raio/4)+c) && y3<(alvo2.y+(alvo2.raio/4)+c) && y3>(alvo2.y-(alvo2.raio/4)+c))
+	{
+		if(x1<(alvo1.x+(alvo1.raio/4)+c) && x1>(alvo1.x-(alvo1.raio/4)+c) && y1<(alvo1.y+(alvo1.raio/4)+c) && y1>(alvo1.y-(alvo1.raio/4)+c))
+		score+=(150/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio*2/3)+c) && x1>(alvo1.x-(alvo1.raio*2/3)+c) && y1<(alvo1.y+(alvo1.raio*2/3)+c) && y1>(alvo1.y-(alvo1.raio*2/3)+c))
+		score+=(80/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio)+c) && x1>(alvo1.x-(alvo1.raio)+c) && y1<(alvo1.y+(alvo1.raio)+c) && y1>(alvo1.y-(alvo1.raio)+c))
+		score+=(50/tempo);
+	}
+	else if(x3<(alvo2.x+(alvo2.raio*2/3)+c) && x3>(alvo2.x-(alvo2.raio*2/3)+c) && y3<(alvo2.y+(alvo2.raio*2/3)+c) && y3>(alvo2.y-(alvo2.raio*2/3)+c))
+	{
+		if(x1<(alvo1.x+(alvo1.raio/4)+c) && x1>(alvo1.x-(alvo1.raio/4)+c) && y1<(alvo1.y+(alvo1.raio/4)+c) && y1>(alvo1.y-(alvo1.raio/4)+c))
+		score+=(100/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio*2/3)+c) && x1>(alvo1.x-(alvo1.raio*2/3)+c) && y1<(alvo1.y+(alvo1.raio*2/3)+c) && y1>(alvo1.y-(alvo1.raio*2/3)+c))
+		score+=(60/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio)+c) && x1>(alvo1.x-(alvo1.raio)+c) && y1<(alvo1.y+(alvo1.raio)+c) && y1>(alvo1.y-(alvo1.raio)+c))
+		score+=(30/tempo);
+	}
+	else if(x3<(alvo2.x+(alvo2.raio)+c) && x3>(alvo2.x-(alvo2.raio)+c) && y3<(alvo2.y+(alvo2.raio)+c) && y3>(alvo2.y-(alvo2.raio)+c))
+		{
+		if(x1<(alvo1.x+(alvo1.raio/4)+c) && x1>(alvo1.x-(alvo1.raio/4)+c) && y1<(alvo1.y+(alvo1.raio/4)+c) && y1>(alvo1.y-(alvo1.raio/4)+c))
+		score+=(80/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio*2/3)+c) && x1>(alvo1.x-(alvo1.raio*2/3)+c) && y1<(alvo1.y+(alvo1.raio*2/3)+c) && y1>(alvo1.y-(alvo1.raio*2/3)+c))
+		score+=(40/tempo);
+		else if(x1<(alvo1.x+(alvo1.raio)+c) && x1>(alvo1.x-(alvo1.raio)+c) && y1<(alvo1.y+(alvo1.raio)+c) && y1>(alvo1.y-(alvo1.raio)+c))
+		score+=(10/tempo);
+	}
+}
+
+//desenha o score na tela
+function desenhaScore(){
+	d.fillStyle="blue";
+	d.fillText("Score : "+score.toFixed(2),50,20);
+}
+
+//recebe evento do mouse
+function input(event){
+	verificaClique(event,alvo1,alvo2);
+}
+
+pre=false;//boolean que define se o primeiro alvo foi clicado
+//trata o clique do mouse
+function verificaClique(event,alvo,alvo2){
+
+x3=0;
+y3=0;
+
+	if(event.which == 1){//ao clicar com o botao esquerdo
+       		x1=event.clientX;
+		y1=event.clientY;
+   	}
+   	if(event.which == 2){//ao clicar com o botao do meio
+   	}
+	if(event.which == 3){//ao clicar com o botao direito
+		x3=event.clientX;
+		y3=event.clientY;
+	}
+	if(x1<(alvo.x+alvo.raio+c) && x1>(alvo.x-alvo.raio+c) && y1<(alvo.y+alvo.raio+c) && y1>(alvo.y-alvo.raio+c))
+		pre=true;//define que o primeiro alvo foi clicado
+	if(x3<(alvo2.x+alvo2.raio+c) && x3>(alvo2.x-alvo2.raio+c) && y3<(alvo2.y+alvo2.raio+c) && y3>(alvo2.y-alvo2.raio+c))
+		if(pre){
+			t3=tempo();
+			aumentaScore(alvo,alvo2,x1,y1,x3,y3,(t3-t2));
+			inicializaJogo();
+			//zera os valores do botao esquerdo do mouse			
+			x1=0;
+			y1=0;
+			pre=false;
+			
+			}				
+}
+
+window.onclick=input;
+
+</script>
+<body>
+</html>
